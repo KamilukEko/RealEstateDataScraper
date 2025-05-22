@@ -1,5 +1,3 @@
-import json
-
 from db.database import init_db, SessionLocal
 from db.models.property import Property
 from models.coordinates import Coordinates

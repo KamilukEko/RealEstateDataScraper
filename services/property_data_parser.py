@@ -26,14 +26,15 @@ def parse_property_data(data_dict: dict) -> PropertySchema:
         price_val = _parse_number(price_val.get('amount'))
 
     property_instance_data = {
-        "id": id_val,
-        "address": address_val,
+        "inner_id": str(id_val),
+        "url": url_val,
+        "source": "MORIZON",
         "city": city_val,
+        "address": address_val,
         "price": price_val,
         "area": area_val,
-        "url": url_val,
         "latitude": latitude_val,
-        "longitude": longitude_val,
+        "longitude": longitude_val
     }
 
     return PropertySchema(**property_instance_data)
