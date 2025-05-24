@@ -1,8 +1,8 @@
 import requests
 
-from models.search_parameters import SearchParameters
-from morizon_scraper.consts import API_URL, HEADER
-from morizon_scraper.queries import create_search_map_query, create_get_property_cluster_data_query, \
+from scrapers.morizon_scraper.search_parameters import SearchParameters
+from scrapers.morizon_scraper.consts import API_URL, HEADER
+from scrapers.morizon_scraper.queries import create_search_map_query, create_get_property_cluster_data_query, \
     create_get_property_details_query
 
 

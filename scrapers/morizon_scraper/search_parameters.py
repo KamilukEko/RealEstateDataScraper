@@ -1,4 +1,4 @@
-from morizon_scraper.consts import TransactionType, RealEstateType
+from scrapers.morizon_scraper.consts import TransactionType, RealEstateType
 
 
 class SearchParameters:

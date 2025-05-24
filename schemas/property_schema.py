@@ -8,13 +8,14 @@ class PropertySchema(BaseModel):
     inner_id: str
     url: str
     source: str
+    contact: Optional[str] = None
     upload_date: Optional[datetime] = datetime.now()
     modification_date: Optional[datetime] = datetime.now()
-    city: str
+    city: Optional[str] = None
     address: Optional[str] = None
     price: Optional[float] = None
     area: float
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    latitude: float
+    longitude: float
 
     model_config = ConfigDict(from_attributes=True)

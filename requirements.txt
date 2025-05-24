@@ -1,3 +1,5 @@
 requests~=2.32.3
-sqlalchemy
-pydantic
+sqlalchemy~=2.0.41
+pydantic~=2.11.4
+beautifulsoup4~=4.13.4
+lxml~=5.1.0

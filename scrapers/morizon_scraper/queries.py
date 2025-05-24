@@ -1,4 +1,4 @@
-from models.search_parameters import SearchParameters
+from scrapers.morizon_scraper.search_parameters import SearchParameters
 
 
 def create_search_map_query(search_parameters: SearchParameters, number_of_markers: int):
