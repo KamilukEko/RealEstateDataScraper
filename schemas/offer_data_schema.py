@@ -20,6 +20,7 @@ class OfferDataSchema(BaseModel):
     address: Optional[str] = None
     price: Optional[float] = None
     area: float
+    floor: Optional[float] = None
     latitude: float
     longitude: float
 

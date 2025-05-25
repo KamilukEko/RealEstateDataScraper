@@ -7,6 +7,7 @@ class Property(Base):
     id = Column(Integer, autoincrement=True, primary_key=True)
 
     area = Column(Float, nullable=False)
+    floor = Column(Integer, nullable=True)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     city = Column(String, nullable=True)

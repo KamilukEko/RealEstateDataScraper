@@ -7,6 +7,7 @@ def parse_olx_property_data(data_dict: dict) -> OfferDataSchema:
         "url": data_dict['url'],
         "offeror_name": data_dict['username'],
         "offeror_id": data_dict['offeror_id'],
+        'floor': data_dict['floor'],
         "source": "OLX",
         "price": data_dict['price'],
         "area": data_dict['area'],

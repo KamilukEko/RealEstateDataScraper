@@ -42,6 +42,7 @@ def add_property(property_data: OfferDataSchema, session: SessionLocal):
             address=property_data.address,
             city=property_data.city,
             area=property_data.area,
+            floor=property_data.floor,
             latitude=property_data.latitude,
             longitude=property_data.longitude
         )

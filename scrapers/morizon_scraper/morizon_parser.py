@@ -10,7 +10,7 @@ def _parse_number(value: str) -> float:
 
 def parse_morizon_property_data(data_dict: dict) -> OfferDataSchema:
     property_data = data_dict.get('data', {}).get('propertyData', {})
-    company_name, company_phone, offeror_name, offeror_phone = None, None, None, None
+    company_name, company_phone, offeror_name, offeror_phone, floor = None, None, None, None, None
 
     if not property_data:
          raise Exception("Property data not found")
@@ -40,6 +40,12 @@ def parse_morizon_property_data(data_dict: dict) -> OfferDataSchema:
     if price_val:
         price_val = _parse_number(price_val.get('amount'))
 
+    floor_val = property_data.get('floorFormatted')
+    if floor_val:
+        floor_val = floor_val.split("/")[0]
+        floor = 0 if floor_val == "parter" else int(floor_val.split()[-1])
+
+
     property_instance_data = {
         "inner_id": str(id_val),
         "url": url_val,
@@ -49,6 +55,7 @@ def parse_morizon_property_data(data_dict: dict) -> OfferDataSchema:
         'agency_name': company_name,
         'agency_phone': company_phone,
         "city": city_val,
+        'floor': floor,
         "address": address_val,
         "price": price_val,
         "area": area_val,

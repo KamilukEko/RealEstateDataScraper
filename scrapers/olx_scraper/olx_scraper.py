@@ -73,7 +73,7 @@ def extract_data_from_offers(urls):
             if not details:
                 continue
 
-            price, id, username, offeror_type, offeror_id, area, latitude, longitude = details
+            price, id, username, offeror_type, offeror_id, area, latitude, longitude, floor = details
             extracted_data.append({
                 'url': url,
                 'id': id,
@@ -82,6 +82,7 @@ def extract_data_from_offers(urls):
                 'offeror_id': offeror_id,
                 'price': price,
                 'area': area,
+                'floor': floor,
                 'latitude': latitude,
                 'longitude': longitude
             })
@@ -95,14 +96,12 @@ def get_offer_details(url):
     res = requests.get(url, headers=HEADERS)
     soup = bs.BeautifulSoup(res.text, 'lxml')
 
-    price, id, username, offeror_type, offeror_id, area, latitude, longitude = (0, '', '', '', '', 0, 0, 0)
+    price, id, username, offeror_type, offeror_id, area, latitude, longitude, floor = (0, '', '', '', '', 0, 0, 0, 0)
     if url.startswith(OLX_BASE_URL):
         price_container = soup.find('div', {'data-testid': "ad-price-container"})
-        if price_container is None:
-            return False
-
-        price = price_container.h3.text
-        price = float(''.join(price.rstrip('zł ').replace(',', '.').split()))
+        if price_container is not None:
+            price = price_container.h3.text
+            price = float(''.join(price.rstrip('zł ').replace(',', '.').split()))
 
         parameters_container = soup.find('div', {'data-testid': "ad-parameters-container"})
         if parameters_container is None:
@@ -114,6 +113,11 @@ def get_offer_details(url):
 
         area_text = area_element.text.replace(',', '.')
         area = float(''.join([c for c in area_text if (c.isdigit() or c == '.') and c != '²']))
+
+        floor_element = parameters_container.find('p', string=lambda x: x and 'Poziom:' in x)
+        if floor_element:
+            floor = floor_element.text.replace('Poziom: ', '')
+            floor = int(floor) if floor.isdecimal() else 0
 
         username_element = soup.find('h4', {'data-testid': 'user-profile-user-name'})
         if not username_element:
@@ -157,10 +161,10 @@ def get_offer_details(url):
         latitude = map_data.get('lat', 0)
         longitude = map_data.get('lon', 0)
 
-    if not any((price, id, offeror_type, offeror_id, username, area, latitude, longitude)):
+    if not any((price, id, offeror_type, offeror_id, username, area, latitude, longitude, floor)):
         return False
 
-    return price, id, username, offeror_type, offeror_id, area, latitude, longitude
+    return price, id, username, offeror_type, offeror_id, area, latitude, longitude, floor
 
 def scrape_details_from_url(ulr, page_limit=100000):
     urls = get_all_offers_from_url(ulr, page_limit)
