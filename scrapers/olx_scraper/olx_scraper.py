@@ -6,10 +6,12 @@ import bs4 as bs
 
 import requests
 
+import db.database
 from scrapers.olx_scraper.consts import HEADERS, OLX_OFFER_PATTERN, OLX_BASE_URL
+from scrapers.olx_scraper.olx_parser import parse_olx_property_data
 
 
-def get_all_offers_from_url(url):
+def get_all_offers_from_url(url, page_limit=100000):
     parsed_url = urlparse(url)
 
     if not parsed_url.query:
@@ -19,6 +21,9 @@ def get_all_offers_from_url(url):
 
     total_urls = []
     for index in count(0):
+        if index >= page_limit:
+            break
+
         if not index:
             url_page = url
         else:
@@ -68,11 +73,13 @@ def extract_data_from_offers(urls):
             if not details:
                 continue
 
-            price, id, username, area, latitude, longitude = details
+            price, id, username, offeror_type, offeror_id, area, latitude, longitude = details
             extracted_data.append({
                 'url': url,
                 'id': id,
                 'username': username,
+                'offeror_type': offeror_type,
+                'offeror_id': offeror_id,
                 'price': price,
                 'area': area,
                 'latitude': latitude,
@@ -88,7 +95,7 @@ def get_offer_details(url):
     res = requests.get(url, headers=HEADERS)
     soup = bs.BeautifulSoup(res.text, 'lxml')
 
-    price, id, username, area, latitude, longitude = (0, '', '', 0, 0, 0)
+    price, id, username, offeror_type, offeror_id, area, latitude, longitude = (0, '', '', '', '', 0, 0, 0)
     if url.startswith(OLX_BASE_URL):
         price_container = soup.find('div', {'data-testid': "ad-price-container"})
         if price_container is None:
@@ -105,7 +112,8 @@ def get_offer_details(url):
         if not area_element:
             return False
 
-        area = float(''.join([c for c in area_element.text if (c.isdigit() or c == '.') and c != '²']))
+        area_text = area_element.text.replace(',', '.')
+        area = float(''.join([c for c in area_text if (c.isdigit() or c == '.') and c != '²']))
 
         username_element = soup.find('h4', {'data-testid': 'user-profile-user-name'})
         if not username_element:
@@ -121,6 +129,18 @@ def get_offer_details(url):
         if not id_span:
             return False
         id = ''.join(filter(str.isdigit, id_span.text))
+
+        offeror_type_p = soup.find('p', {'data-testid': "trader-title"})
+        if not offeror_type_p:
+            offeror_type = "CANT TELL YET" # TODO: wait for trader info to apperar (with selenium)
+        else:
+            offeror_type = "PRIVATE" if offeror_type_p.text.strip() == 'Osoba prywatna' else 'AGENCY'
+
+        offeror_url_element = soup.find('a', {'data-testid': "user-profile-link"})
+        if not offeror_url_element:
+            print("2")
+            return False
+        offeror_id = offeror_url_element['href'].split('/')[-2]
 
         config_script = soup.find('script', {'id': "olx-init-config"})
         config_script_lines = config_script.text.splitlines()
@@ -139,11 +159,18 @@ def get_offer_details(url):
         latitude = map_data.get('lat', 0)
         longitude = map_data.get('lon', 0)
 
-    if not any((price, id, username, area, latitude, longitude)):
+    if not any((price, id, offeror_type, offeror_id, username, area, latitude, longitude)):
         return False
 
-    print(f'Added property: {url}')
-    return price, id, username, area, latitude, longitude
+    return price, id, username, offeror_type, offeror_id, area, latitude, longitude
+
+def scrape_details_from_url(ulr, page_limit=100000):
+    urls = get_all_offers_from_url(ulr, page_limit)
+    olx_properties = extract_data_from_offers(urls)
+
+    for olx_property in olx_properties:
+        property_schema = parse_olx_property_data(olx_property)
+        print(db.database.handle_data(property_schema))
 
 
 if __name__ == "__main__":

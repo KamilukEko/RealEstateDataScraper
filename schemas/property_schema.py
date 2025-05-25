@@ -8,7 +8,10 @@ class PropertySchema(BaseModel):
     inner_id: str
     url: str
     source: str
-    contact: Optional[str] = None
+    offeror_name: str
+    offeror_type: Optional[str] = None
+    offeror_id: Optional[str] = None
+    phone: Optional[str] = None
     upload_date: Optional[datetime] = datetime.now()
     modification_date: Optional[datetime] = datetime.now()
     city: Optional[str] = None

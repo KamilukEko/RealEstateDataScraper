@@ -1,25 +1,12 @@
 from schemas.property_schema import PropertySchema
 
+
 def _parse_number(value: str) -> float:
     if isinstance(value, (int, float)):
         return float(value)
     if isinstance(value, str):
         return float(value.replace(',', '.'))
     return 0.0
-
-def parse_olx_property_data(data_dict: dict) -> PropertySchema:
-    property_instance_data = {
-        "inner_id": data_dict['id'],
-        "url": data_dict['url'],
-        "contact": data_dict['username'],
-        "source": "OLX",
-        "price": data_dict['price'],
-        "area": data_dict['area'],
-        "latitude": data_dict['latitude'],
-        "longitude": data_dict['longitude']
-    }
-
-    return PropertySchema(**property_instance_data)
 
 def parse_morizon_property_data(data_dict: dict) -> PropertySchema:
     property_data = data_dict.get('data', {}).get('propertyData', {})
@@ -35,12 +22,19 @@ def parse_morizon_property_data(data_dict: dict) -> PropertySchema:
     latitude_val = _parse_number(property_data.get('location', {}).get('map', {}).get('center', {}).get('latitude'))
     longitude_val = _parse_number(property_data.get('location', {}).get('map', {}).get('center', {}).get('longitude'))
 
-    contact_name = None
     contact = property_data.get('contact')
     if contact:
         company = contact.get('company')
         if company:
+            contact_type = "AGENCY"
             contact_name = company.get('name')
+            phone = company.get('phones', [None])[0]
+        else:
+            contact_type = "PRIVATE"
+            person = contact.get('person')
+            if person:
+                contact_name = person.get('name')
+                phone = person.get('phones', [None])[0]
 
     price_val = property_data.get('price')
     if price_val:
@@ -50,7 +44,9 @@ def parse_morizon_property_data(data_dict: dict) -> PropertySchema:
         "inner_id": str(id_val),
         "url": url_val,
         "source": "MORIZON",
-        "contact": contact_name,
+        "offeror_name": contact_name,
+        "offeror_type": contact_type,
+        "phone": phone,
         "city": city_val,
         "address": address_val,
         "price": price_val,
