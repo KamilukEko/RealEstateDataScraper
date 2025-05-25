@@ -3,15 +3,17 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
-class PropertySchema(BaseModel):
+class OfferDataSchema(BaseModel):
     id: Optional[int] = None
     inner_id: str
     url: str
     source: str
-    offeror_name: str
-    offeror_type: Optional[str] = None
+    offeror_name: Optional[str] = None
     offeror_id: Optional[str] = None
-    phone: Optional[str] = None
+    offeror_phone: Optional[str] = None
+    agency_name: Optional[str] = None
+    agency_email: Optional[str] = None
+    agency_phone: Optional[str] = None
     upload_date: Optional[datetime] = datetime.now()
     modification_date: Optional[datetime] = datetime.now()
     city: Optional[str] = None

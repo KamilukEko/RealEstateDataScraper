@@ -1,4 +1,4 @@
-from schemas.property_schema import PropertySchema
+from schemas.offer_data_schema import OfferDataSchema
 
 
 def _parse_number(value: str) -> float:
@@ -8,8 +8,9 @@ def _parse_number(value: str) -> float:
         return float(value.replace(',', '.'))
     return 0.0
 
-def parse_morizon_property_data(data_dict: dict) -> PropertySchema:
+def parse_morizon_property_data(data_dict: dict) -> OfferDataSchema:
     property_data = data_dict.get('data', {}).get('propertyData', {})
+    company_name, company_phone, offeror_name, offeror_phone = None, None, None, None
 
     if not property_data:
          raise Exception("Property data not found")
@@ -26,15 +27,14 @@ def parse_morizon_property_data(data_dict: dict) -> PropertySchema:
     if contact:
         company = contact.get('company')
         if company:
-            contact_type = "AGENCY"
-            contact_name = company.get('name')
-            phone = company.get('phones', [None])[0]
-        else:
-            contact_type = "PRIVATE"
-            person = contact.get('person')
-            if person:
-                contact_name = person.get('name')
-                phone = person.get('phones', [None])[0]
+            company_name = company.get('name')
+            company_phone = company.get('phones', [None])[0]
+
+        person = contact.get('person')
+        if person:
+            offeror_name = person.get('name')
+            offeror_phone = person.get('phones', [None])[0]
+
 
     price_val = property_data.get('price')
     if price_val:
@@ -44,9 +44,10 @@ def parse_morizon_property_data(data_dict: dict) -> PropertySchema:
         "inner_id": str(id_val),
         "url": url_val,
         "source": "MORIZON",
-        "offeror_name": contact_name,
-        "offeror_type": contact_type,
-        "phone": phone,
+        "offeror_name": offeror_name,
+        "offeror_phone": offeror_phone,
+        'agency_name': company_name,
+        'agency_phone': company_phone,
         "city": city_val,
         "address": address_val,
         "price": price_val,
@@ -55,4 +56,4 @@ def parse_morizon_property_data(data_dict: dict) -> PropertySchema:
         "longitude": longitude_val
     }
 
-    return PropertySchema(**property_instance_data)
+    return OfferDataSchema(**property_instance_data)

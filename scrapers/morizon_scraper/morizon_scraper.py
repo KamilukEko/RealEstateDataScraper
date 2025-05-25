@@ -8,4 +8,4 @@ def scrape_details_from_cluster(clusters):
         property_cluster = get_property_cluster_data_request(cluster['url'])
         for real_estate in property_cluster['data']['searchResult']['properties']['nodes']:
             property_schema = parse_morizon_property_data(get_property_details_request(real_estate['url']))
-            print(db.database.add_or_update_property(property_schema))
+            print(db.database.handle_data(property_schema))

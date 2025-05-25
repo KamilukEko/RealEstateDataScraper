@@ -131,14 +131,12 @@ def get_offer_details(url):
         id = ''.join(filter(str.isdigit, id_span.text))
 
         offeror_type_p = soup.find('p', {'data-testid': "trader-title"})
-        if not offeror_type_p:
-            offeror_type = "CANT TELL YET" # TODO: wait for trader info to apperar (with selenium)
-        else:
-            offeror_type = "PRIVATE" if offeror_type_p.text.strip() == 'Osoba prywatna' else 'AGENCY'
+        if offeror_type_p:
+            if offeror_type_p.text.strip() == 'Osoba prywatna':
+                pass # TODO: Get data about agency
 
         offeror_url_element = soup.find('a', {'data-testid': "user-profile-link"})
         if not offeror_url_element:
-            print("2")
             return False
         offeror_id = offeror_url_element['href'].split('/')[-2]
 
@@ -171,13 +169,3 @@ def scrape_details_from_url(ulr, page_limit=100000):
     for olx_property in olx_properties:
         property_schema = parse_olx_property_data(olx_property)
         print(db.database.handle_data(property_schema))
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('olx_url', type=str, help='olx url with flat advertisments')
-    args = parser.parse_args()
-    olx_url = args.olx_url
-    urls = get_all_offers_from_url(olx_url)
-    print(f'Found {len(urls)} offers')
-    print(extract_data_from_offers(urls))
