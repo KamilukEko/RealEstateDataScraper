@@ -1,13 +1,14 @@
 from schemas.offer_data_schema import OfferDataSchema
 
 
-def parse_olx_property_data(data_dict: dict) -> OfferDataSchema:
+def parse_olx_property_data(data_dict: dict, is_agency: bool) -> OfferDataSchema:
     property_instance_data = {
         "inner_id": data_dict['id'],
         "url": data_dict['url'],
         "offeror_name": data_dict['username'],
         "offeror_id": data_dict['offeror_id'],
         'floor': data_dict['floor'],
+        'is_agency': is_agency,
         "source": "OLX",
         "price": data_dict['price'],
         "area": data_dict['area'],

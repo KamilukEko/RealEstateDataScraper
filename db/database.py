@@ -1,7 +1,6 @@
 from datetime import datetime
 from sqlalchemy import exists
 
-from db.models.agency import Agency
 from db.models.property import Property
 from db.models.offer import Offer
 from db.models.offeror import Offeror
@@ -18,7 +17,6 @@ SessionLocal = sessionmaker(bind=engine)
 def init_db():
     import db.models.property
     import db.models.offer
-    import db.models.agency
     import db.models.offeror
     import db.models.offer_update
     Base.metadata.create_all(bind=engine)
@@ -28,6 +26,7 @@ def add_property(property_data: OfferDataSchema, session: SessionLocal):
     exists_query = session.query(exists().where(
         and_(Property.longitude == property_data.longitude,
              Property.latitude == property_data.latitude,
+             Property.address == property_data.address,
              Property.area == property_data.area)
     )).scalar()
 
@@ -35,6 +34,7 @@ def add_property(property_data: OfferDataSchema, session: SessionLocal):
         property_obj = session.query(Property).filter(
             and_(Property.longitude == property_data.longitude,
                  Property.latitude == property_data.latitude,
+                 Property.address == property_data.address,
                  Property.area == property_data.area)
         ).first()
     else:
@@ -52,51 +52,26 @@ def add_property(property_data: OfferDataSchema, session: SessionLocal):
     return property_obj
 
 
-def add_agency(property_data: OfferDataSchema, session):
-    exists_query = session.query(exists().where(
-        Agency.name == property_data.agency_name,
-            Agency.email == property_data.agency_email,
-            Agency.phone == property_data.agency_phone,
-    )).scalar()
-
-    if exists_query:
-        agency_obj = session.query(Agency).filter(
-            Agency.name == property_data.agency_name,
-            Agency.email == property_data.agency_email,
-            Agency.phone == property_data.agency_phone,
-        ).first()
-    else:
-        agency_obj = Agency(
-            source=property_data.source,
-            name=property_data.agency_name,
-            email=property_data.agency_email,
-            phone=property_data.agency_phone,
-        )
-        session.add(agency_obj)
-        session.flush()
-
-    return agency_obj
-
-def add_offeror(property_data: OfferDataSchema, agency_id, session):
+def add_offeror(property_data: OfferDataSchema, session):
     exists_query = session.query(exists().where(
         Offeror.name == property_data.offeror_name,
             Offeror.inner_id==property_data.offeror_id,
-            Offeror.agency_id==agency_id
+        Offeror.source == property_data.source
     )).scalar()
 
     if exists_query:
         offeror_obj = session.query(Offeror).filter(
             Offeror.name == property_data.offeror_name,
             Offeror.inner_id==property_data.offeror_id,
-            Offeror.agency_id == agency_id
+            Offeror.source == property_data.source
         ).first()
     else:
         offeror_obj = Offeror(
             name=property_data.offeror_name,
             source=property_data.source,
             inner_id=property_data.offeror_id,
-            phone=property_data.offeror_phone,
-            agency_id=agency_id
+            phone_number=property_data.offeror_phone,
+            is_agency= property_data.is_agency
         )
         session.add(offeror_obj)
         session.flush()
@@ -168,12 +143,8 @@ def handle_data(property_data: OfferDataSchema):
 
         property_obj = add_property(property_data, session)
 
-        agency_obj = None
-        if property_data.agency_name:
-            agency_obj = add_agency(property_data, session)
 
-        offeror_obj = add_offeror(property_data, (agency_obj.id if agency_obj is not None else None), session)
-        offeror_obj.agency = agency_obj
+        offeror_obj = add_offeror(property_data, session)
 
         offer_obj = add_offer(property_data, offeror_obj.id, property_obj.id, session)
         offer_obj.property = property_obj

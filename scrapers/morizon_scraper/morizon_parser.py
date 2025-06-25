@@ -1,16 +1,18 @@
 from schemas.offer_data_schema import OfferDataSchema
 
 
-def _parse_number(value: str) -> float:
-    if isinstance(value, (int, float)):
-        return float(value)
-    if isinstance(value, str):
-        return float(value.replace(',', '.'))
-    return 0.0
+def _parse_number(value: str) -> float | None:
+    try:
+        if isinstance(value, (int, float)):
+            return float(value)
+        return float(value.replace(',', '.').replace('\xa0', '').replace(' ', ''))
+    except Exception as e:
+        print(e)
+        return None
 
 def parse_morizon_property_data(data_dict: dict) -> OfferDataSchema:
     property_data = data_dict.get('data', {}).get('propertyData', {})
-    company_name, company_phone, offeror_name, offeror_phone, floor = None, None, None, None, None
+    company_name, company_phone_numbers, offeror_name, offeror_phone, floor = None, [], None, None, None
 
     if not property_data:
          raise Exception("Property data not found")
@@ -28,12 +30,13 @@ def parse_morizon_property_data(data_dict: dict) -> OfferDataSchema:
         company = contact.get('company')
         if company:
             company_name = company.get('name')
-            company_phone = company.get('phones', [None])[0]
 
         person = contact.get('person')
         if person:
             offeror_name = person.get('name')
-            offeror_phone = person.get('phones', [None])[0]
+            offeror_phone_element = person.get('phones')
+            if offeror_phone_element:
+                offeror_phone = offeror_phone_element[0] if isinstance(offeror_phone_element, list) else None
 
 
     price_val = property_data.get('price')
@@ -50,10 +53,9 @@ def parse_morizon_property_data(data_dict: dict) -> OfferDataSchema:
         "inner_id": str(id_val),
         "url": url_val,
         "source": "MORIZON",
-        "offeror_name": offeror_name,
+        "offeror_name": company_name if company_name else offeror_name,
         "offeror_phone": offeror_phone,
-        'agency_name': company_name,
-        'agency_phone': company_phone,
+        'is_agency': True if company_name else False,
         "city": city_val,
         'floor': floor,
         "address": address_val,

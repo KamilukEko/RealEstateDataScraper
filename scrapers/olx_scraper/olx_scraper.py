@@ -166,10 +166,12 @@ def get_offer_details(url):
 
     return price, id, username, offeror_type, offeror_id, area, latitude, longitude, floor
 
-def scrape_details_from_url(ulr, page_limit=100000):
-    urls = get_all_offers_from_url(ulr, page_limit)
+def scrape_details_from_url(url, page_limit=100000):
+    urls = get_all_offers_from_url(url, page_limit)
     olx_properties = extract_data_from_offers(urls)
 
+    is_agency = True if 'private_business%5D=business' in url else False
+
     for olx_property in olx_properties:
-        property_schema = parse_olx_property_data(olx_property)
+        property_schema = parse_olx_property_data(olx_property, is_agency)
         print(db.database.handle_data(property_schema))
