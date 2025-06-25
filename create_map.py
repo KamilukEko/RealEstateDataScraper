@@ -81,24 +81,25 @@ def create_map(properties_data, save_path="warsaw_map.html"):
                     radius=8,
                     popup=folium.Popup(
                         f"""
-                        <div style="white-space: pre;">
-                        <b>Price:</b> {prop['price'] or 'N/A'} zł<br>
-                        <b>Area:</b> {prop['area']}m²<br>
-                        {f"<b>Price per m²:</b> {prop['price_per_m2']:.2f} zł<br>" if prop['price'] is not None else ''}
-                        <b>Floor:</b> {prop['floor'] or 'N/A'}<br>
-                        <b>Address:</b> {prop['address'] or 'Not specified'}<br>
-                        <b>Offers:</b><br>
-                        {
-                        '<br>'.join(
-                            f"&nbsp;&nbsp;&nbsp;&nbsp;<a href='{offer['url']}' target='_blank'>{offer['source']}({offer['inner_id']}) from {offer['date']}</a>" +
-                            '<br>' +
-                            '<br>'.join(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{price['update_date']}: {price['price']} zł"
-                                        for price in offer['prices'])
-                            for offer in prop['offers']
-                        ) if prop['offers'] else ''
-                        }
-                        </div>
-                        """,
+<div style="white-space: pre;">
+<b>Price:</b> {prop['price'] or 'N/A'} zł<br>
+<b>Area:</b> {prop['area']}m²<br>
+{f"<b>Price per m²:</b> {prop['price_per_m2']:.2f} zł<br>" if pd.notna(prop['price']) else ''}
+<b>Floor:</b> {prop['floor'] or 'N/A'}<br>
+<b>Address:</b> {prop['address'] or 'Not specified'}<br>
+<b>Offers:</b><br>
+{
+    '<br>'.join(
+        f"&nbsp;&nbsp;&nbsp;&nbsp;<a href='{offer['url']}' target='_blank'>{offer['source']}({offer['inner_id']}) from {offer['date']}</a><br>" +
+        '<br>'.join(
+            f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{price['update_date']}: {price['price']} zł"
+            for price in offer['prices']
+        )
+        for offer in prop['offers']
+    ) if prop['offers'] else ''
+}
+</div>
+""",
                         max_width=300,
                         min_width=150
                     ),
